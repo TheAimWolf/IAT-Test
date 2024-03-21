@@ -1,0 +1,20 @@
+{
+    "name": "skin",
+    "label": "Hautfarbe",
+    "description": "Welche Hautfarbe ziehst du vor? Ordne zunächst die guten Wörter links zu und die schlechten Wörter rechts zu.",
+    "a": "Dunkle Hautfarbe",
+    "b": "Helle Hautfarbe",
+    "a-full": "Du ziehst dunkle Hautfarbe heller Hautfarbe vor.",
+    "b-full": "Du ziehst heller Hautfarbe dunkler Hautfarbe vor.",
+    "a-half": "Du ziehst dunkle Hautfarbe heller Hautfarbe leicht vor.",
+    "b-half": "Du ziehst heller Hautfarbe dunkler Hautfarbe leicht vor.",
+    "a-b": "Du ziehst keine Hautfarbe einer anderen vor.",
+    "pausen": [
+        "Pause. Als nächstes werden dir Bilder angezeigt. Ordne die Bilder mit dunkler Hautfarbe links zu und die Bilder mit heller Hautfarbe rechts zu.",
+        "Pause. Als nächstes werden dir Bilder und Wörter angezeigt. Ordne die Bilder mit dunkler Hautfarbe links zu und die Bilder mit heller Hautfarbe rechts zu. Ordne die guten Wörter links zu und die schlechten Wörter rechts zu.",
+        "Pause. Als nächstes werden dir Bilder und Wörter angezeigt. Ordne die Bilder mit dunkler Hautfarbe links zu und die Bilder mit heller Hautfarbe rechts zu. Ordne die guten Wörter links zu und die schlechten Wörter rechts zu.",
+        "Pause. Als nächstes werden dir Wörter angezeigt. Ordne die guten Wörter rechts zu und die schlechten Wörter links zu.",
+        "Pause. Als nächstes werden dir Bilder und Wörter angezeigt. Ordne die Bilder mit dunkler Hautfarbe rechts zu und die Bilder mit heller Hautfarbe links zu. Ordne die guten Wörter links zu und die schlechten Wörter rechts zu.",
+        "Pause. Als nächstes werden dir Bilder und Wörter angezeigt. Ordne die Bilder mit dunkler Hautfarbe rechts zu und die Bilder mit heller Hautfarbe links zu. Ordne die guten Wörter links zu und die schlechten Wörter rechts zu."
+    ]
+}

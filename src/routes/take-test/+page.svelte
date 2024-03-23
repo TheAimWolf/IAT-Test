@@ -324,8 +324,8 @@
 
 	</button>
 	{/if}
-	<div class="flex h-screen w-screen flex-col items-center justify-center overflow-hidden">
-		<div class="flex h-3/5 w-8/12 flex-col items-center">
+	<div class="flex h-screen w-screen flex-col items-center justify-center">
+		<div class="flex h-5/6 lg:h-3/5 w-8/12 flex-col items-center">
 			{#if curState == 'pretest'}
 				<DescriptionCard curTestInfo={testInfo} bind:curState bind:curUserAge={userAge} />
 			{:else if curState == 'pause'}

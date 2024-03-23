@@ -316,6 +316,14 @@
 </script>
 
 <main>
+	{#if curState == 'test'}
+	<button on:click={goLeft} class="absolute w-1/2 h-screen">
+
+	</button>
+	<button on:click={goRight} class="absolute right-0 w-1/2 h-screen">
+
+	</button>
+	{/if}
 	<div class="flex h-screen w-screen flex-col items-center justify-center overflow-hidden">
 		<div class="flex h-3/5 w-8/12 flex-col items-center">
 			{#if curState == 'pretest'}

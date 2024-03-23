@@ -4,7 +4,6 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import QuestionCard from '../../components/QuestionCard.svelte';
-	import { Result } from 'postcss';
 	import ResultCard from '../../components/ResultCard.svelte';
 	const testName = $page.url.searchParams.get('testName');
 	const goodJsonPath = `src/sets/${testName}/good.json`;
@@ -12,15 +11,19 @@
 	const picturePath = `src/sets/${testName}/pictures.json`;
 	const testInfoPath = `src/sets/${testName}/testinfo.json`;
 
+	let inQuestionPause:boolean = false;
+	let wrongAnswer:boolean = false;
+
 	let lastTimestamp: number;
 
 	class testEntry {
 		time: number; //How long the user took to answer the question
 		correct: boolean; //Was the answer correct
 		aGood: boolean; //If set a was asosiatet with the good words -> true
-		constructor(pCorrect: boolean, pAGood: boolean) {
+		constructor(pCorrect: boolean, pAGood: boolean, pTime?: number) {
 			let now = Date.now();
-			this.time = now - lastTimestamp;
+			if(pTime){this.time = pTime}
+			else{this.time = now - lastTimestamp;}
 			this.correct = pCorrect;
 			this.aGood = pAGood;
 		}
@@ -54,13 +57,13 @@
 
 	// l: true if good words left, false if good words right, t: Tries, m: Mode [w: words, p: pictures, m: mixed], f: Function [p: Practice, t: Test]
 	let rounds: Array<{ l: boolean; t: number; m: string; f: string }> = [
-		{ l: true, t: 20, m: 'w', f: 'p' },
-		{ l: true, t: 20, m: 'p', f: 'p' },
-		{ l: true, t: 20, m: 'm', f: 'p' },
-		{ l: true, t: 40, m: 'm', f: 't' },
-		{ l: false, t: 20, m: 'w', f: 'p' },
-		{ l: false, t: 20, m: 'm', f: 'p' },
-		{ l: false, t: 40, m: 'm', f: 't' }
+		{ l: true, t: 2, m: 'w', f: 'p' },
+		{ l: true, t: 2, m: 'p', f: 'p' },
+		{ l: true, t: 2, m: 'm', f: 'p' },
+		{ l: true, t: 4, m: 'm', f: 't' },
+		{ l: false, t: 2, m: 'w', f: 'p' },
+		{ l: false, t: 2, m: 'm', f: 'p' },
+		{ l: false, t: 4, m: 'm', f: 't' }
 	];
 
 	let curState: string = 'pretest';
@@ -93,10 +96,21 @@
 
 	async function showResults(testResults:testEntry[]) {
 		const dScore:number = calculateDScore(testResults);
+		if(dScore === -1000){testResultString = 'Leider hast du zu viele Fehleingaben gemacht, weswegen der Test nicht ausgewertet werden kann.'; return;}
+		if(dScore === -1010){testResultString = 'Du bist leider zu schnell gewesen. Schonmal über eine E-Sports Karriere nachgedacht?'; return;}
+		fetch('/save', {
+			method: 'PUT',
+			body: JSON.stringify({
+				testName: testName,
+				result: dScore,
+				age: userAge,
+				testType: 'prod'
+			})
+		})
 		if(dScore <= -1){testResultString = testInfo['b-full']}
 		else if (dScore > -1 && dScore <= -0.25){testResultString = testInfo['b-half']}
-		else if (dScore > -0.25 && dScore <= 0.25){testResultString = testInfo['a-b']}
-		else if (dScore > 0.25 && dScore < 1){testResultString = testInfo['a-half']}
+		else if (dScore > -0.25 && dScore < 0.25){testResultString = testInfo['a-b']}
+		else if (dScore >= 0.25 && dScore < 1){testResultString = testInfo['a-half']}
 		else if (dScore >= 1){testResultString = testInfo['a-full']}
 	}
 
@@ -113,6 +127,9 @@
 		let allTimes:number[] = []
 		// Filtere ungewöhnliche Antwortzeiten und falsche Antworten heraus
 		let validEntries = entries.filter((e) => e.correct && e.time <= 10000);
+		if(validEntries.length/entries.length < 0.75){return -1000} //Error code for to many wrong tries
+		let entriesLessThenMin = entries.filter((e) => e.time < 300)
+		if(entriesLessThenMin.length/entries.length > 0.1){return -1010} //Error code for to fast answers
 		validEntries.forEach((e) => {
 			if(e.time < 300){e.time = 300}
 			if(e.time > 3000){e.time = 3000}
@@ -134,6 +151,7 @@
 		// Berechne D-Score als Differenz der mittleren Antwortzeiten
 		// Normalisierung des D-Scores durch Teilen durch Standardabweichung
 		// Für die Standardabweichungsberechnung benötigst du weitere Schritte
+		console.log(meanTimeNotLinkedToA, meanTimeLinkedToA, standardDeviation)
 		const dScore = (meanTimeNotLinkedToA- meanTimeLinkedToA) / standardDeviation;
 		//let dScore = meanTimeNotLinkedToA - meanTimeLinkedToA;
 
@@ -147,8 +165,6 @@
 			goodJson = await response.json();
 			const response2 = await fetch(badJsonPath);
 			badJson = await response2.json();
-			console.log(goodJson);
-			console.log(badJson);
 			mixedWords = [...goodJson, ...badJson];
 
 			const response3 = await fetch(picturePath);
@@ -186,8 +202,8 @@
 				curLeftWords = ['Gut', 'Dunkel']; //TODO Programatisch ermitteln
 				curRightWords = ['Schlecht', 'Hell']; //TODO Programatisch ermitteln
 			} else {
-				curLeftWords = ['Gut', 'Hell']; //TODO Programatisch ermitteln
-				curRightWords = ['Schlecht', 'Dunkel']; //TODO Programatisch ermitteln
+				curLeftWords = ['Schlecht', 'Dunkel']; //TODO Programatisch ermitteln
+				curRightWords = ['Gut', 'Hell']; //TODO Programatisch ermitteln
 			}
 		}
 		curRound++;
@@ -205,17 +221,18 @@
 			curMiddleWord = mixedWords[Math.floor(Math.random() * mixedWords.length)];
 			const isGoodWord = goodJson.includes(curMiddleWord);
 			const isBadWord = badJson.includes(curMiddleWord);
-			curAnswer = isGoodWord ? 'left' : isBadWord ? 'right' : '';
+			if(rounds[curRound - 1].l) {
+				curAnswer = isGoodWord ? 'left' : isBadWord ? 'right' : '';
+			} else {
+				curAnswer = isGoodWord ? 'right' : isBadWord ? 'left' : '';
+			}
 		} else if (rounds[curRound - 1].m == 'p') {
 			curMiddleWord = null;
 			curPicture = mixedPics[Math.floor(Math.random() * mixedPics.length)];
 			const isPic1 = pics1.includes(curPicture);
 			const isPic2 = pics2.includes(curPicture);
-			if (rounds[curRound - 1].l) {
-				curAnswer = isPic1 ? 'left' : isPic2 ? 'right' : '';
-			} else {
-				curAnswer = isPic1 ? 'right' : isPic2 ? 'left' : '';
-			}
+			curAnswer = isPic1 ? 'left' : isPic2 ? 'right' : '';
+
 		} else {
 			curMiddleWord = null;
 			curPicture = null;
@@ -224,54 +241,67 @@
 				curMiddleWord = mixedWords[Math.floor(Math.random() * mixedWords.length)];
 				const isGoodWord = goodJson.includes(curMiddleWord);
 				const isBadWord = badJson.includes(curMiddleWord);
-				curAnswer = isGoodWord ? 'left' : isBadWord ? 'right' : '';
+				if(rounds[curRound - 1].l) {
+					curAnswer = isGoodWord ? 'left' : isBadWord ? 'right' : '';
+				} else {
+					curAnswer = isGoodWord ? 'right' : isBadWord ? 'left' : '';
+				}
 			} else {
 				curPicture = mixedPics[Math.floor(Math.random() * mixedPics.length)];
 				const isPic1 = pics1.includes(curPicture);
 				const isPic2 = pics2.includes(curPicture);
-				if (rounds[curRound - 1].l) {
-					curAnswer = isPic1 ? 'left' : isPic2 ? 'right' : '';
-				} else {
-					curAnswer = isPic1 ? 'right' : isPic2 ? 'left' : '';
-				}
+				curAnswer = isPic1 ? 'left' : isPic2 ? 'right' : '';
 			}
 		}
 		curStep++;
 	}
 
+	function betweenQuestions() {
+		inQuestionPause = true;
+		curMiddleWord = null;
+		curPicture = null;
+		setTimeout(function(){
+			newStep();
+			inQuestionPause = false
+		}, 250)
+	}
+
+
 	onMount(async () => {
 		const testInfoResponse = await fetch(testInfoPath);
 		testInfo = await testInfoResponse.json();
-		console.log(testInfo);
 		window.addEventListener('keydown', handleKeyPress);
 		await fetchJson();
 		newRound();
 	});
 
 	function handleKeyPress(event: KeyboardEvent) {
-		if (event.key === 'e') {
-			goLeft();
-		}
-		if (event.key === 'i') {
-			goRight();
+		if(curState === 'test') {
+			if (event.key === 'e') {
+				goLeft();
+			}
+			if (event.key === 'i') {
+				goRight();
+			}
 		}
 	}
 
 	function userAction(isLeft: boolean) {
-		if (curState == 'pause') {
+		if (curState == 'pause' || inQuestionPause) {
 			return;
 		}
-		console.log(curAnswer, isLeft)
 		if ((isLeft && curAnswer == 'left') || (!isLeft && curAnswer == 'right')) {
 			if (rounds[curRound - 1].f === 't' && curState === 'test') {
 				testProgress.push(new testEntry(true, rounds[curRound - 1].l));
 				lastTimestamp = Date.now();
 			}
-			newStep();
+			wrongAnswer = false
+			betweenQuestions();
 		} else {
 			if (rounds[curRound - 1].f === 't' && curState === 'test') {
 				testProgress.push(new testEntry(false, rounds[curRound - 1].l));
 			}
+			wrongAnswer = true
 			//TODO: Show some kind of error
 		}
 	}
@@ -301,6 +331,7 @@
 					rightWords={curRightWords}
 					middleWord={curMiddleWord}
 					picture={curPicture}
+					error={wrongAnswer}
 				/>
 			{:else if curState == 'end'}
 				<ResultCard result={testResultString} />

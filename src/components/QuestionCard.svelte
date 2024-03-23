@@ -1,5 +1,5 @@
 <script lang='ts'>
-    export let leftWords:Array<string> = [], rightWords:Array<string> = [], middleWord:string|null, picture:string|null;
+    export let leftWords:Array<string> = [], rightWords:Array<string> = [], middleWord:string|null, picture:string|null, error:boolean;
 </script>
 
 <div class="w-full h-full flex flex-col items-center">
@@ -29,10 +29,17 @@
                     <h1 class="m-4 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
                         {#if middleWord != undefined || middleWord != null}
                             {middleWord}
-                        {:else}
+                        {:else if picture}
                             <img class="max-w-64" src={picture} alt="Bild konnte nicht gefunden werden :(">
                         {/if}
                     </h1>
+                    {#if error}
+                    <div>
+                        <h1 class="text-xl">
+                            ❌
+                        </h1>
+                    </div>
+                    {/if}
                 </div>
             </div>
         </div>

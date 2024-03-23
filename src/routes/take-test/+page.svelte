@@ -57,13 +57,13 @@
 
 	// l: true if good words left, false if good words right, t: Tries, m: Mode [w: words, p: pictures, m: mixed], f: Function [p: Practice, t: Test]
 	let rounds: Array<{ l: boolean; t: number; m: string; f: string }> = [
-		{ l: true, t: 2, m: 'w', f: 'p' },
-		{ l: true, t: 2, m: 'p', f: 'p' },
-		{ l: true, t: 2, m: 'm', f: 'p' },
-		{ l: true, t: 4, m: 'm', f: 't' },
-		{ l: false, t: 2, m: 'w', f: 'p' },
-		{ l: false, t: 2, m: 'm', f: 'p' },
-		{ l: false, t: 4, m: 'm', f: 't' }
+		{ l: true, t: 20, m: 'w', f: 'p' },
+		{ l: true, t: 20, m: 'p', f: 'p' },
+		{ l: true, t: 20, m: 'm', f: 'p' },
+		{ l: true, t: 40, m: 'm', f: 't' },
+		{ l: false, t: 20, m: 'w', f: 'p' },
+		{ l: false, t: 20, m: 'm', f: 'p' },
+		{ l: false, t: 40, m: 'm', f: 't' }
 	];
 
 	let curState: string = 'pretest';
